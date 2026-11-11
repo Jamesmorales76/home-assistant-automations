@@ -1,0 +1,82 @@
+alias: Gym AC Temperature Control
+description: >-
+  Cools the gym via the James Office AC when Gym Temperature (ESPHome) is above
+  75°F, turns it off below 71°F, and keeps it off during peak hours (5-9pm
+  Mon-Sat, no peak on Sunday). Forces off at 5pm and re-checks at 9pm so it
+  never runs into/through peak even without a new threshold crossing.
+mode: single
+
+triggers:
+  - trigger: numeric_state
+    entity_id: sensor.outdoor_gym_temperature_monitor_gym_temperature
+    above: 75
+    id: gym_hot
+  - trigger: numeric_state
+    entity_id: sensor.outdoor_gym_temperature_monitor_gym_temperature
+    below: 71
+    id: gym_cool
+  - trigger: time
+    at: "17:00:00"
+    id: peak_start
+  - trigger: time
+    at: "21:00:00"
+    id: peak_end
+
+actions:
+  - choose:
+      # Hot and NOT in peak -> cool
+      - conditions:
+          - condition: trigger
+            id: gym_hot
+          - condition: not
+            conditions:
+              - condition: time
+                after: "17:00:00"
+                before: "21:00:00"
+                weekday: [mon, tue, wed, thu, fri, sat]
+        sequence:
+          - action: climate.set_hvac_mode
+            target:
+              entity_id: climate.james_office_james_office_ac
+            data:
+              hvac_mode: cool
+
+      # Cooled down -> off (always allowed)
+      - conditions:
+          - condition: trigger
+            id: gym_cool
+        sequence:
+          - action: climate.set_hvac_mode
+            target:
+              entity_id: climate.james_office_james_office_ac
+            data:
+              hvac_mode: "off"
+
+      # 5pm Mon-Sat -> force off
+      - conditions:
+          - condition: trigger
+            id: peak_start
+          - condition: time
+            weekday: [mon, tue, wed, thu, fri, sat]
+        sequence:
+          - action: climate.set_hvac_mode
+            target:
+              entity_id: climate.james_office_james_office_ac
+            data:
+              hvac_mode: "off"
+
+      # 9pm Mon-Sat -> resume cooling if still above 75
+      - conditions:
+          - condition: trigger
+            id: peak_end
+          - condition: time
+            weekday: [mon, tue, wed, thu, fri, sat]
+          - condition: numeric_state
+            entity_id: sensor.outdoor_gym_temperature_monitor_gym_temperature
+            above: 75
+        sequence:
+          - action: climate.set_hvac_mode
+            target:
+              entity_id: climate.james_office_james_office_ac
+            data:
+              hvac_mode: cool
