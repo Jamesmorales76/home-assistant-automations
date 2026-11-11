@@ -1,18 +1,18 @@
 alias: Gym AC Temperature Control
 description: >-
-  Cools the gym via the James Office AC when Gym Temperature (ESPHome) is above
-  75°F, turns it off below 71°F, and keeps it off during peak hours (5-9pm
-  Mon-Sat, no peak on Sunday). Forces off at 5pm and re-checks at 9pm so it
-  never runs into/through peak even without a new threshold crossing.
+  Cools the gym via the gym AC when the gym temperature sensor (ESPHome) is
+  above 75°F, turns it off below 71°F, and keeps it off during peak hours
+  (5-9pm Mon-Sat, no peak on Sunday). Forces off at 5pm and re-checks at 9pm so
+  it never runs into/through peak even without a new threshold crossing.
 mode: single
 
 triggers:
   - trigger: numeric_state
-    entity_id: sensor.outdoor_gym_temperature_monitor_gym_temperature
+    entity_id: sensor.gym_temperature
     above: 75
     id: gym_hot
   - trigger: numeric_state
-    entity_id: sensor.outdoor_gym_temperature_monitor_gym_temperature
+    entity_id: sensor.gym_temperature
     below: 71
     id: gym_cool
   - trigger: time
@@ -37,7 +37,7 @@ actions:
         sequence:
           - action: climate.set_hvac_mode
             target:
-              entity_id: climate.james_office_james_office_ac
+              entity_id: climate.gym_ac
             data:
               hvac_mode: cool
 
@@ -48,7 +48,7 @@ actions:
         sequence:
           - action: climate.set_hvac_mode
             target:
-              entity_id: climate.james_office_james_office_ac
+              entity_id: climate.gym_ac
             data:
               hvac_mode: "off"
 
@@ -61,7 +61,7 @@ actions:
         sequence:
           - action: climate.set_hvac_mode
             target:
-              entity_id: climate.james_office_james_office_ac
+              entity_id: climate.gym_ac
             data:
               hvac_mode: "off"
 
@@ -72,11 +72,11 @@ actions:
           - condition: time
             weekday: [mon, tue, wed, thu, fri, sat]
           - condition: numeric_state
-            entity_id: sensor.outdoor_gym_temperature_monitor_gym_temperature
+            entity_id: sensor.gym_temperature
             above: 75
         sequence:
           - action: climate.set_hvac_mode
             target:
-              entity_id: climate.james_office_james_office_ac
+              entity_id: climate.gym_ac
             data:
               hvac_mode: cool
