@@ -16,5 +16,5 @@ Keeps the gym comfortable while staying out of the electric utility's time-of-us
 
 ## Setup notes
 - Requires Home Assistant 2024.10 or later (uses the triggers/actions syntax).
-- Replace the entity IDs (sensor.outdoor_gym_temperature_monitor_gym_temperature and climate.james_office_james_office_ac) with your own.
+- Replace the entity IDs (sensor.gym_temperature and climate.gym_ac) with your own.
 - Adjust the thresholds and the peak window to match your utility rate plan.
